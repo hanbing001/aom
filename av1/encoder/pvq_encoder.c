@@ -520,7 +520,7 @@ static int pvq_theta(od_coeff *out, const od_coeff *x0, const od_coeff *r0,
         OD_CLEAR(y_tmp, n-1);
       }
       else if (k != prev_k) {
-        cos_dist = pvq_search_rdo_double(xr, n - 1, k, y_tmp,
+        cos_dist = pvq_search_rdo_double_c(xr, n - 1, k, y_tmp,
          qcg*(double)cg*sin_prod*OD_CGAIN_SCALE_2, pvq_norm_lambda, prev_k);
       }
       prev_k = k;
@@ -565,7 +565,7 @@ static int pvq_theta(od_coeff *out, const od_coeff *x0, const od_coeff *r0,
       dist = gain_weight*(qcg - cg)*(qcg - cg);
       dist *= OD_CGAIN_SCALE_2;
       if (dist > dist0 && k != 0) continue;
-      cos_dist = pvq_search_rdo_double(x16, n, k, y_tmp,
+      cos_dist = pvq_search_rdo_double_c(x16, n, k, y_tmp,
        qcg*(double)cg*OD_CGAIN_SCALE_2, pvq_norm_lambda, prev_k);
       prev_k = k;
       /* See Jmspeex' Journal of Dubious Theoretical Results. */
