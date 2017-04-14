@@ -22,6 +22,9 @@
 #include "av1/common/thread_common.h"
 #include "av1/common/onyxc_int.h"
 #include "av1/encoder/aq_cyclicrefresh.h"
+#if CONFIG_DELTA_Q
+#include "av1/encoder/aq_mbtree.h"
+#endif
 #if CONFIG_ANS
 #include "aom_dsp/ans.h"
 #include "aom_dsp/buf_ans.h"
@@ -130,6 +133,7 @@ typedef enum {
   CYCLIC_REFRESH_AQ = 3,
 #if CONFIG_DELTA_Q
   DELTA_AQ = 4,
+  MBTREE_AQ = 5,
 #endif
   AQ_MODE_COUNT  // This should always be the last member of the enum
 } AQ_MODE;
@@ -636,6 +640,11 @@ typedef struct AV1_COMP {
 
   // VARIANCE_AQ segment map refresh
   int vaq_refresh;
+
+#if CONFIG_DELTA_Q
+  // MBtree
+  MBTreeContext mbtree;
+#endif
 
   // Multi-threading
   int num_workers;

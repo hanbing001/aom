@@ -104,6 +104,10 @@ AV1_CX_SRCS-yes += encoder/aq_cyclicrefresh.c
 AV1_CX_SRCS-yes += encoder/aq_cyclicrefresh.h
 AV1_CX_SRCS-yes += encoder/aq_complexity.c
 AV1_CX_SRCS-yes += encoder/aq_complexity.h
+ifeq ($(CONFIG_DELTA_Q),yes)
+AV1_CX_SRCS-yes += encoder/aq_mbtree.c
+AV1_CX_SRCS-yes += encoder/aq_mbtree.h
+endif
 AV1_CX_SRCS-yes += encoder/temporal_filter.c
 AV1_CX_SRCS-yes += encoder/temporal_filter.h
 AV1_CX_SRCS-yes += encoder/mbgraph.c

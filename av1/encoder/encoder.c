@@ -31,6 +31,9 @@
 #include "av1/encoder/aq_complexity.h"
 #include "av1/encoder/aq_cyclicrefresh.h"
 #include "av1/encoder/aq_variance.h"
+#if CONFIG_DELTA_Q
+#include "av1/encoder/aq_mbtree.h"
+#endif
 #include "av1/encoder/bitstream.h"
 #if CONFIG_ANS
 #include "aom_dsp/buf_ans.h"
@@ -2167,6 +2170,11 @@ AV1_COMP *av1_create_compressor(AV1EncoderConfig *oxcf,
   cpi->common.buffer_pool = pool;
 
   init_config(cpi, oxcf);
+
+#if CONFIG_DELTA_Q
+  av1_mbtree_init(cpi);
+#endif
+
 #if CONFIG_XIPHRC
   cpi->od_rc.framerate = cpi->framerate;
   cpi->od_rc.frame_width = cm->render_width;
@@ -2623,6 +2631,10 @@ void av1_remove_compressor(AV1_COMP *cpi) {
     }
 #endif
   }
+
+#if CONFIG_DELTA_Q
+  av1_mbtree_uninit(cpi);
+#endif
 
   for (t = 0; t < cpi->num_workers; ++t) {
     AVxWorker *const worker = &cpi->workers[t];
@@ -4099,6 +4111,17 @@ static void encode_without_recode_loop(AV1_COMP *cpi) {
   } else if (cpi->oxcf.aq_mode == CYCLIC_REFRESH_AQ) {
     av1_cyclic_refresh_setup(cpi);
   }
+#if CONFIG_DELTA_Q
+  else if (cpi->oxcf.aq_mode == MBTREE_AQ) {
+    ThreadData *const td = &cpi->td;
+    MACROBLOCK *const x = &td->mb;
+    MACROBLOCKD *const xd = &x->e_mbd;
+    xd->mi = cm->mi_grid_visible;
+    xd->mi[0] = cm->mi;
+    av1_mbtree_update(cpi);
+  }
+#endif
+
   apply_active_map(cpi);
 
   // transform / motion compensation build reconstruction frame

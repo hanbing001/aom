@@ -37,6 +37,9 @@
 #include "av1/encoder/aq_complexity.h"
 #include "av1/encoder/aq_cyclicrefresh.h"
 #include "av1/encoder/aq_variance.h"
+#if CONFIG_DELTA_Q
+#include "av1/encoder/aq_mbtree.h"
+#endif
 #if CONFIG_SUPERTX
 #include "av1/encoder/cost.h"
 #endif
@@ -1901,6 +1904,11 @@ static void rd_pick_sb_modes(const AV1_COMP *const cpi, TileDataEnc *tile_data,
     if (cyclic_refresh_segment_id_boosted(mbmi->segment_id))
       x->rdmult = av1_cyclic_refresh_get_rdmult(cpi->cyclic_refresh);
   }
+#if CONFIG_DELTA_Q
+  else if (aq_mode == MBTREE_AQ) {
+    x->rdmult = set_segment_rdmult(cpi, x, mbmi->segment_id);
+  }
+#endif
 
   // Find best coding mode & reconstruct the MB so it is available
   // as a predictor for MBs that follow in the SB
@@ -4603,7 +4611,7 @@ static void encode_rd_sb_row(AV1_COMP *cpi, ThreadData *td,
     }
 
 #if CONFIG_DELTA_Q
-    if (cpi->oxcf.aq_mode == DELTA_AQ) {
+    if (cpi->oxcf.aq_mode >= DELTA_AQ) {
       // Test mode for delta quantization
       int sb_row = mi_row >> 3;
       int sb_col = mi_col >> 3;
@@ -4611,7 +4619,12 @@ static void encode_rd_sb_row(AV1_COMP *cpi, ThreadData *td,
       int index = ((sb_row * sb_stride + sb_col + 8) & 31) - 16;
 
       // Ensure divisibility of delta_qindex by delta_q_res
-      int offset_qindex = (index < 0 ? -index - 8 : index - 8);
+      int offset_qindex;
+      if (cpi->oxcf.aq_mode == MBTREE_AQ) {
+        offset_qindex = -av1_mbtree_get_mb_delta(cpi, sb_row, sb_col);
+      } else {
+        offset_qindex = (index < 0 ? -index - 8 : index - 8);
+      }
       int qmask = ~(cm->delta_q_res - 1);
       int current_qindex = clamp(cm->base_qindex + offset_qindex,
                                  cm->delta_q_res, 256 - cm->delta_q_res);
