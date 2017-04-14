@@ -231,12 +231,6 @@ void av1_mbtree_update(struct AV1_COMP *cpi)
   MBTreeContext *mbt = &cpi->mbtree;
   AV1_COMMON *const cm = &cpi->common;
 
-  if (!mbt->prop_cost)
-    mbt->prop_cost = aom_calloc(cm->mb_rows*cm->mb_cols, sizeof(*mbt->prop_cost));
-
-  if (!mbt->last_intra)
-    mbt->last_intra = aom_calloc(cm->mb_rows*cm->mb_cols, sizeof(*mbt->last_intra));
-
   memset(mbt->prop_cost, 0.0f, sizeof(float)*cm->mb_rows*cm->mb_cols);
 
   int last_lookahead = av1_lookahead_depth(cpi->lookahead);
@@ -266,11 +260,16 @@ void av1_mbtree_init(struct AV1_COMP *cpi)
 {
     MBTreeContext *mbt = &cpi->mbtree;
     AV1_COMMON *const cm = &cpi->common;
+
+    mbt->prop_cost = aom_calloc(cm->mb_rows*cm->mb_cols, sizeof(*mbt->prop_cost));
+    mbt->last_intra = aom_calloc(cm->mb_rows*cm->mb_cols, sizeof(*mbt->last_intra));
     mbt->scratch_buf = aom_malloc(cm->render_width*cm->render_height*2);
 }
 
 void av1_mbtree_uninit(struct AV1_COMP *cpi)
 {
     MBTreeContext *mbt = &cpi->mbtree;
+    aom_free(mbt->prop_cost);
+    aom_free(mbt->last_intra);
     aom_free(mbt->scratch_buf);
 }
