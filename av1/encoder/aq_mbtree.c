@@ -263,7 +263,7 @@ void av1_mbtree_init(struct AV1_COMP *cpi)
 
     mbt->prop_cost = aom_calloc(cm->mb_rows*cm->mb_cols, sizeof(*mbt->prop_cost));
     mbt->last_intra = aom_calloc(cm->mb_rows*cm->mb_cols, sizeof(*mbt->last_intra));
-    mbt->scratch_buf = aom_malloc(cm->render_width*cm->render_height*2);
+    mbt->scratch_buf = aom_calloc(cm->render_width*cm->render_height, 2);
 }
 
 void av1_mbtree_uninit(struct AV1_COMP *cpi)

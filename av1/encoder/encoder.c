@@ -3889,6 +3889,17 @@ static void set_size_dependent_vars(AV1_COMP *cpi, int *q, int *bottom_index,
   // Setup variables that depend on the dimensions of the frame.
   av1_set_speed_features_framesize_dependent(cpi);
 
+#if CONFIG_DELTA_Q
+  if (cpi->oxcf.pass != 1 && cpi->oxcf.aq_mode == MBTREE_AQ) {
+    ThreadData *const td = &cpi->td;
+    MACROBLOCK *const x = &td->mb;
+    MACROBLOCKD *const xd = &x->e_mbd;
+    xd->mi = cm->mi_grid_visible;
+    xd->mi[0] = cm->mi;
+    av1_mbtree_update(cpi);
+  }
+#endif
+
 // Decide q and q bounds.
 #if CONFIG_XIPHRC
   int frame_type = cm->frame_type == KEY_FRAME ? OD_I_FRAME : OD_P_FRAME;
@@ -4111,16 +4122,6 @@ static void encode_without_recode_loop(AV1_COMP *cpi) {
   } else if (cpi->oxcf.aq_mode == CYCLIC_REFRESH_AQ) {
     av1_cyclic_refresh_setup(cpi);
   }
-#if CONFIG_DELTA_Q
-  else if (cpi->oxcf.aq_mode == MBTREE_AQ) {
-    ThreadData *const td = &cpi->td;
-    MACROBLOCK *const x = &td->mb;
-    MACROBLOCKD *const xd = &x->e_mbd;
-    xd->mi = cm->mi_grid_visible;
-    xd->mi[0] = cm->mi;
-    av1_mbtree_update(cpi);
-  }
-#endif
 
   apply_active_map(cpi);
 
