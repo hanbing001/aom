@@ -261,9 +261,9 @@ void av1_mbtree_init(struct AV1_COMP *cpi)
     MBTreeContext *mbt = &cpi->mbtree;
     AV1_COMMON *const cm = &cpi->common;
 
-    mbt->prop_cost = aom_calloc(cm->mb_rows*cm->mb_cols, sizeof(*mbt->prop_cost));
-    mbt->last_intra = aom_calloc(cm->mb_rows*cm->mb_cols, sizeof(*mbt->last_intra));
-    mbt->scratch_buf = aom_calloc(cm->render_width*cm->render_height, 2);
+    mbt->prop_cost = aom_calloc(cm->mb_rows*cm->mb_cols + 1, sizeof(*mbt->prop_cost));
+    mbt->last_intra = aom_calloc(cm->mb_rows*cm->mb_cols + 1, sizeof(*mbt->last_intra));
+    mbt->scratch_buf = aom_calloc(cm->render_width*cm->render_height, 6);
 }
 
 void av1_mbtree_uninit(struct AV1_COMP *cpi)
