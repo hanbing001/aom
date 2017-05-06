@@ -11,6 +11,7 @@
 
 #include <limits.h>
 #include <math.h>
+#include <float.h>
 
 #include "./av1_rtcd.h"
 #include "./aom_dsp_rtcd.h"
@@ -216,6 +217,8 @@ static void process_frame(AV1_COMP *cpi, MBTreeContext *mbt, int index)
       *last_intra = (float)ierr;
 
       int perr = do_64x64_motion_search(cpi, &gld_top_mv, mb_row, mb_col);
+
+      perr += FLT_EPSILON;
 
       float prop_fraction = 1.0f - (ierr/(float)perr);
       float prop_amount = (ierr + *prop_in)*prop_fraction;
