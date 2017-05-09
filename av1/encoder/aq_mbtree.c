@@ -218,9 +218,13 @@ static void process_frame(AV1_COMP *cpi, MBTreeContext *mbt, int index)
 
       int perr = do_64x64_motion_search(cpi, &gld_top_mv, mb_row, mb_col);
 
-      perr += FLT_EPSILON;
+      if (perr > ierr)
+        perr = ierr;
 
-      float prop_fraction = 1.0f - (ierr/(float)perr);
+      float prop_num = ierr - perr;
+      float prop_denom = ierr;
+
+      float prop_fraction = prop_num/prop_denom;
       float prop_amount = (ierr + *prop_in)*prop_fraction;
       *prop_in += prop_amount;
     }
@@ -247,13 +251,12 @@ int av1_mbtree_get_mb_delta(struct AV1_COMP *cpi, int mb_row, int mb_col)
   AV1_COMMON *const cm = &cpi->common;
   float prop_cost = mbt->prop_cost[mb_row*cm->mb_cols + mb_col];
   float last_intra = mbt->last_intra[mb_row*cm->mb_cols + mb_col];
-  float qdif = log2f((last_intra + prop_cost + 1)/(prop_cost + 1))/2;
-  //printf("QDIF[%i][%i] = %f\n", mb_row, mb_col, qdif);
+  float qdif = 90*((log2f((last_intra + prop_cost + 1)/(prop_cost + 1))/18.0) - 1.0f);
   if (isnan(qdif))
     return 0;
   if (qdif == 0.0f)
     return 0;
-  int r = lrintf(qdif);
+  int r = floor(qdif);
   if (r > 1)
     return r;
   return 0;
@@ -272,6 +275,7 @@ void av1_mbtree_init(struct AV1_COMP *cpi)
 void av1_mbtree_uninit(struct AV1_COMP *cpi)
 {
     MBTreeContext *mbt = &cpi->mbtree;
+
     aom_free(mbt->prop_cost);
     aom_free(mbt->last_intra);
     aom_free(mbt->scratch_buf);
