@@ -251,12 +251,12 @@ int av1_mbtree_get_mb_delta(struct AV1_COMP *cpi, int mb_row, int mb_col)
   AV1_COMMON *const cm = &cpi->common;
   float prop_cost = mbt->prop_cost[mb_row*cm->mb_cols + mb_col];
   float last_intra = mbt->last_intra[mb_row*cm->mb_cols + mb_col];
-  float qdif = 90*((log2f((last_intra + prop_cost + 1)/(prop_cost + 1))/18.0) - 1.0f);
+  float qdif = 100*((log2f((last_intra + prop_cost + 1)/(prop_cost + 1))/18.0) - 1.0f);
   if (isnan(qdif))
     return 0;
   if (qdif == 0.0f)
     return 0;
-  int r = floor(qdif);
+  int r = lrintf(qdif);
   if (r > 1)
     return r;
   return 0;
@@ -267,9 +267,9 @@ void av1_mbtree_init(struct AV1_COMP *cpi)
     MBTreeContext *mbt = &cpi->mbtree;
     AV1_COMMON *const cm = &cpi->common;
 
-    mbt->prop_cost = aom_calloc(cm->mb_rows*cm->mb_cols + 1, sizeof(*mbt->prop_cost));
-    mbt->last_intra = aom_calloc(cm->mb_rows*cm->mb_cols + 1, sizeof(*mbt->last_intra));
-    mbt->scratch_buf = aom_calloc(cm->render_width*cm->render_height, 6);
+    mbt->prop_cost = aom_calloc(cm->mb_rows*cm->mb_cols, sizeof(*mbt->prop_cost));
+    mbt->last_intra = aom_calloc(cm->mb_rows*cm->mb_cols, sizeof(*mbt->last_intra));
+    mbt->scratch_buf = aom_calloc(cm->render_width*cm->render_height, 2);
 }
 
 void av1_mbtree_uninit(struct AV1_COMP *cpi)
