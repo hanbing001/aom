@@ -213,10 +213,10 @@ static void process_frame(AV1_COMP *cpi, MBTreeContext *mbt, int index)
       xd->plane[0].dst.buf = buf1_start + mb_col*64;
       xd->plane[0].pre[0].buf = xd->plane[0].dst.buf;
 
-      int ierr = find_best_64x64_intra(cpi);
-      *last_intra = (float)ierr;
+      float ierr = (float)find_best_64x64_intra(cpi);
+      *last_intra = ierr;
 
-      int perr = do_64x64_motion_search(cpi, &gld_top_mv, mb_row, mb_col);
+      float perr = (float)do_64x64_motion_search(cpi, &gld_top_mv, mb_row, mb_col);
 
       if (perr > ierr)
         perr = ierr;
