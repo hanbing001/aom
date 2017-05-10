@@ -224,8 +224,10 @@ static void process_frame(AV1_COMP *cpi, MBTreeContext *mbt, int index)
       float prop_num = ierr - perr;
       float prop_denom = ierr;
 
-      float prop_fraction = prop_num/prop_denom;
-      float prop_amount = (ierr + *prop_in)*prop_fraction;
+      float prop_amount = ierr + *prop_in;
+
+      prop_amount = ((prop_amount * prop_num) / prop_denom) + 0.5f;
+
       *prop_in += prop_amount;
     }
     buf0_start += buf0->y_stride;
@@ -249,17 +251,25 @@ int av1_mbtree_get_mb_delta(struct AV1_COMP *cpi, int mb_row, int mb_col)
 {
   MBTreeContext *mbt = &cpi->mbtree;
   AV1_COMMON *const cm = &cpi->common;
+
+  int mb_row_c, mb_col_c;
+  float max_c = 0.0f;
+
+  for (mb_row_c = 0; mb_row_c < cm->mb_rows; mb_row_c++) {
+    for (mb_col_c = 0; mb_col_c < cm->mb_cols; mb_col_c++) {
+      float last_intra = mbt->last_intra[mb_row_c*cm->mb_cols + mb_col_c];
+      float prop_cost = mbt->prop_cost[mb_row_c*cm->mb_cols + mb_col_c];
+      prop_cost = log2f((last_intra + prop_cost + 1)/(prop_cost + 1));
+      if (prop_cost > max_c)
+        max_c = prop_cost;
+    }
+  }
+
   float prop_cost = mbt->prop_cost[mb_row*cm->mb_cols + mb_col];
   float last_intra = mbt->last_intra[mb_row*cm->mb_cols + mb_col];
-  float qdif = 100*((log2f((last_intra + prop_cost + 1)/(prop_cost + 1))/18.0) - 1.0f);
-  if (isnan(qdif))
-    return 0;
-  if (qdif == 0.0f)
-    return 0;
-  int r = lrintf(qdif);
-  if (r > 1)
-    return r;
-  return 0;
+  float qdif = log2f((last_intra + prop_cost + 1)/(prop_cost + 1))/max_c;
+
+  return lrintf((1.0f - qdif)*60);
 }
 
 void av1_mbtree_init(struct AV1_COMP *cpi)
