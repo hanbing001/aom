@@ -269,7 +269,9 @@ int av1_mbtree_get_mb_delta(struct AV1_COMP *cpi, int mb_row, int mb_col)
   float last_intra = mbt->last_intra[mb_row*cm->mb_cols + mb_col];
   float qdif = log2f((last_intra + prop_cost + 1)/(prop_cost + 1))/max_c;
 
-  return lrintf((1.0f - qdif)*35);
+  int var = lrintf((1.0f - qdif)*35);
+
+  return var > 0 ? 1 : 0;
 }
 
 void av1_mbtree_init(struct AV1_COMP *cpi)
